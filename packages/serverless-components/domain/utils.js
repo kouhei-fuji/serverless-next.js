@@ -296,36 +296,37 @@ const configureDnsForCloudFrontDistribution = async (
       Changes: []
     }
   };
+  const aliasTarget = {
+    HostedZoneId: HOSTED_ZONE_ID,
+    DNSName: distributionUrl,
+    EvaluateTargetHealth: false
+  };
 
   // don't create www records for apex mode
   if (!subdomain.domain.startsWith("www.") || domainType !== "apex") {
-    dnsRecordParams.ChangeBatch.Changes.push({
-      Action: "UPSERT",
-      ResourceRecordSet: {
-        Name: subdomain.domain,
-        Type: "A",
-        AliasTarget: {
-          HostedZoneId: HOSTED_ZONE_ID,
-          DNSName: distributionUrl,
-          EvaluateTargetHealth: false
+    ["A", "AAAA"].forEach((type) => {
+      dnsRecordParams.ChangeBatch.Changes.push({
+        Action: "UPSERT",
+        ResourceRecordSet: {
+          Name: subdomain.domain,
+          Type: type,
+          AliasTarget: aliasTarget
         }
-      }
+      });
     });
   }
 
   // don't create apex records for www mode
   if (subdomain.domain.startsWith("www.") && domainType !== "www") {
-    dnsRecordParams.ChangeBatch.Changes.push({
-      Action: "UPSERT",
-      ResourceRecordSet: {
-        Name: subdomain.domain.replace("www.", ""),
-        Type: "A",
-        AliasTarget: {
-          HostedZoneId: HOSTED_ZONE_ID,
-          DNSName: distributionUrl,
-          EvaluateTargetHealth: false
+    ["A", "AAAA"].forEach((type) => {
+      dnsRecordParams.ChangeBatch.Changes.push({
+        Action: "UPSERT",
+        ResourceRecordSet: {
+          Name: subdomain.domain.replace("www.", ""),
+          Type: type,
+          AliasTarget: aliasTarget
         }
-      }
+      });
     });
   }
 
@@ -344,20 +345,18 @@ const removeCloudFrontDomainDnsRecords = async (
   const params = {
     HostedZoneId: domainHostedZoneId,
     ChangeBatch: {
-      Changes: [
-        {
-          Action: "DELETE",
-          ResourceRecordSet: {
-            Name: domain,
-            Type: "A",
-            AliasTarget: {
-              HostedZoneId: HOSTED_ZONE_ID,
-              DNSName: distributionUrl,
-              EvaluateTargetHealth: false
-            }
+      Changes: ["A", "AAAA"].map((type) => ({
+        Action: "DELETE",
+        ResourceRecordSet: {
+          Name: domain,
+          Type: type,
+          AliasTarget: {
+            HostedZoneId: HOSTED_ZONE_ID,
+            DNSName: distributionUrl,
+            EvaluateTargetHealth: false
           }
         }
-      ]
+      }))
     }
   };
 

@@ -39,6 +39,21 @@ module.exports = (origin, { originAccessIdentityId = "" }) => {
       OriginReadTimeout: 30,
       OriginKeepaliveTimeout: 5
     };
+    if (typeof origin === "object" && origin.customHeaders) {
+      const customHeaders = (origin.customHeaders || [])
+        .map((item) => {
+          if (typeof item.name === "string" && typeof item.value === "string") {
+            return { HeaderName: item.name, HeaderValue: item.value };
+          }
+        })
+        .filter(Boolean);
+      if (customHeaders.length > 0) {
+        originConfig.CustomHeaders = {
+          Quantity: customHeaders.length,
+          Items: customHeaders
+        };
+      }
+    }
   }
 
   return originConfig;

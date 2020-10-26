@@ -84,7 +84,7 @@ const getDomainHostedZoneId = async (route53, domain, privateZone) => {
   const params = {
     DNSName: domain
   };
-  
+
   const hostedZonesRes = await route53.listHostedZonesByName(params).promise();
 
   const hostedZone = hostedZonesRes.HostedZones.find(
@@ -396,20 +396,26 @@ const addDomainToCloudfrontDistribution = async (
   params.Id = subdomain.distributionId;
 
   // 5. then make our changes
-  params.DistributionConfig.Aliases.Items.push(subdomain.domain);
-  params.DistributionConfig.Aliases.Quantity += 1;
   if (subdomain.domain.startsWith("www.")) {
     if (domainType === "apex") {
-      params.DistributionConfig.Aliases.Items[-1] = `${subdomain.domain.replace(
-        "www.",
-        ""
-      )}`;
-    } else if (domainType !== "www") {
+      params.DistributionConfig.Aliases.Items.push(
+        `${subdomain.domain.replace("www.", "")}`
+      );
+      params.DistributionConfig.Aliases.Quantity += 1;
+    } else if (domainType === "www") {
+      params.DistributionConfig.Aliases.Items.push(subdomain.domain);
+      params.DistributionConfig.Aliases.Quantity += 1;
+    } else {
+      params.DistributionConfig.Aliases.Items.push(subdomain.domain);
+      params.DistributionConfig.Aliases.Quantity += 1;
       params.DistributionConfig.Aliases.Items.push(
         `${subdomain.domain.replace("www.", "")}`
       );
       params.DistributionConfig.Aliases.Quantity += 1;
     }
+  } else {
+    params.DistributionConfig.Aliases.Items.push(subdomain.domain);
+    params.DistributionConfig.Aliases.Quantity += 1;
   }
 
   params.DistributionConfig.ViewerCertificate = {

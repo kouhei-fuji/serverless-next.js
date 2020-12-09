@@ -1,7 +1,10 @@
 // Need retries to fix https://github.com/aws/aws-sdk-js-v3/issues/1196
 import { SdkError } from "@aws-sdk/smithy-client";
+import type { StandardRetryStrategy } from "@aws-sdk/middleware-retry";
 
-export const buildS3RetryStrategy = async () => {
+export const buildS3RetryStrategy = async (): Promise<
+  StandardRetryStrategy
+> => {
   const { defaultRetryDecider, StandardRetryStrategy } = await import(
     "@aws-sdk/middleware-retry"
   );

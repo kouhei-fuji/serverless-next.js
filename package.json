@@ -24,7 +24,7 @@
     "lint": "eslint .",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "integration": "jest --runInBand --config jest.integration.config.json --setupTestFrameworkScriptFile=./jest.integration.setup.js",
-    "postinstall": "yarn packages-install && opencollective-postinstall",
+    "postinstall": "yarn packages-install && opencollective-postinstall || :",
     "docs": "cd documentation && yarn && yarn build"
   },
   "repository": {
